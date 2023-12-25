@@ -3,12 +3,11 @@ using Microsoft.Win32;
 using OxyPlot;
 using OxyPlot.Series;
 using OxyPlot.Wpf;
-using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows;
 
 namespace SalesAnalysis;
 
@@ -16,7 +15,7 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
 {
     public ClusterAnalysisViewModel()
     {
-        PlotCollection = new PlotModel { Title = "Кластеризация вакансий" };
+        PlotCollection = new PlotModel { Title = "Кластеризация товаров" };
         PlotCollection.Background = OxyColors.White;
 
         using (var db = new SalesAnalysisContext())
@@ -26,7 +25,6 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
     }
 
     public ObservableCollection<ClusteredProduct> ClusteredProducts { get; set; } = new ObservableCollection<ClusteredProduct>();
-
 
     private ObservableCollection<Product> _Products;
     public ObservableCollection<Product> Products
@@ -89,6 +87,23 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
             }
         }
     }
+
+    private bool _UseAlgoritm;
+
+    public bool UseAlgoritm
+    {
+        get { return _UseAlgoritm; }
+        set
+        {
+            if (_UseAlgoritm != value)
+            {
+                _UseAlgoritm = value;
+                OnPropertyChanged("UseAlgoritm");
+            }
+        }
+    }
+
+
     private RelayCommand _LoadClusterAnalysisWindowCommand;
     public RelayCommand LoadClusterAnalysisWindowCommand
     {
@@ -97,9 +112,9 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
             return _LoadClusterAnalysisWindowCommand ??
               (_LoadClusterAnalysisWindowCommand = new RelayCommand(obj =>
               {
+                  UseAlgoritm = false;
                   using (var db = new SalesAnalysisContext())
                   {
-                      // 1. Получение данных о средней зарплате и времени закрытия вакансии
                       var rawData = db.Products.ToList();
 
                       // 2. Нормализация данных
@@ -141,19 +156,47 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
                       int[] labels = clusters.Decide(observations);
 
                       ClusteredProducts.Clear();
-                      for (int i = 0; i < rawData.Count; i++)
+
+                      if (UseAlgoritm is true)
                       {
-                          ClusteredProducts.Add(new ClusteredProduct
+                          for (int i = 0; i < rawData.Count; i++)
                           {
-                              Id = rawData[i].Id,
-                              Price = rawData[i].Price,
-                              NormalizedPrice = normalizedData[i][0],
-                              Total = rawData[i].Total,
-                              NormalizedTotal = normalizedData[i][1],
-                              AssignedCluster = labels[i],
-                              Name = rawData[i].Name
-                          });
+                              ClusteredProducts.Add(new ClusteredProduct
+                              {
+                                  Id = rawData[i].Id,
+                                  Price = rawData[i].Price,
+                                  NormalizedPrice = normalizedData[i][0],
+                                  Total = rawData[i].Total,
+                                  NormalizedTotal = normalizedData[i][1],
+                                  AssignedCluster = labels[i],
+                                  Name = rawData[i].Name
+                              });
+
+
+                              rawData[i].Cluster = labels[i];
+                              db.Products.Update(rawData[i]);
+                          }
                       }
+                      else
+                      {
+                          for (int i = 0; i < rawData.Count; i++)
+                          {
+                              var product = db.Products.First(x => x.Id == rawData[i].Id);
+
+                              ClusteredProducts.Add(new ClusteredProduct
+                              {
+                                  Id = rawData[i].Id,
+                                  Price = rawData[i].Price,
+                                  NormalizedPrice = normalizedData[i][0],
+                                  Total = rawData[i].Total,
+                                  NormalizedTotal = normalizedData[i][1],
+                                  AssignedCluster = product.Cluster,
+                                  Name = rawData[i].Name
+                              });
+                          }
+                      }
+
+                      db.SaveChanges();
 
                       var groupedByCluster = observations.Zip(labels, (observation, label) => new { observation, label })
                                .GroupBy(ol => ol.label)
@@ -175,7 +218,7 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
                           {
                               MarkerType = MarkerType.Circle,
                               MarkerSize = 4,
-                              MarkerFill = clusterColors[clusterGroup.Key] // Установите цвет на основе метки кластера
+                              MarkerFill = clusterColors[clusterGroup.Key]
 
                           };
 
@@ -199,6 +242,20 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
     {
         plotModel.Series.Add(series);
         OnPropertyChanged("PlotCollection");
+    }
+
+    private RelayCommand _ToggleAlgorithmCommand;
+    public RelayCommand ToggleAlgorithmCommand
+    {
+        get
+        {
+            return _ToggleAlgorithmCommand ?? (_ToggleAlgorithmCommand = new RelayCommand(obj =>
+            {
+                MessageBox.Show("Данные не прошли проверку целостности!","Ошибка");
+                UseAlgoritm = !UseAlgoritm; // Инвертируем значение UseAlgoritm
+                OnPropertyChanged("UseAlgoritm");
+            }));
+        }
     }
 
 

@@ -27,28 +27,28 @@ public static class DataGenerator
             if (randomValue < 0.2) // 20% вероятность
             {
                 product.Price = _random.Next(15, 25) * 1000;
-                product.Total = _random.Next(27, 35);
+                product.Total = _random.Next(1, 35);
             }
             else if (randomValue < 0.4) // следующие 20%
             {
                 product.Price = _random.Next(20, 36) * 1000;
-                product.Total = _random.Next(37, 45);
+                product.Total = _random.Next(1, 60);
             }
             else if (randomValue < 0.6) // следующие 20%
             {
                 product.Price = _random.Next(30, 46) * 1000;
-                product.Total = _random.Next(47, 56);
+                product.Total = _random.Next(1, 50);
             }
             else if (randomValue < 0.8) // следующие 20%
             {
                 product.Price = _random.Next(40, 56) * 1000;
-                product.Total = _random.Next(57, 66);
+                product.Total = _random.Next(1, 60);
             }
             else // последние 20%
             {
                 // Центральная крестовина: средние значения зарплаты и продолжительности
                 product.Price = _random.Next(50, 66) * 1000;
-                product.Total = _random.Next(67, 77);
+                product.Total = _random.Next(1, 50);
             }
 
             products.Add(product);

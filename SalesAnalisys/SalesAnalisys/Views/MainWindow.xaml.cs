@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using Employment.WPF.Views;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -19,6 +20,18 @@ namespace SalesAnalysis
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new ClusterAnalysisView();
+            window.Show();
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            var window = new ClusterAnalysisTableView();
+            window.Show();
         }
     }
 }
