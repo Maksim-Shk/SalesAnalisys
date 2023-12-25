@@ -112,7 +112,7 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
             return _LoadClusterAnalysisWindowCommand ??
               (_LoadClusterAnalysisWindowCommand = new RelayCommand(obj =>
               {
-                  UseAlgoritm = false;
+                  UseAlgoritm = true;
                   using (var db = new SalesAnalysisContext())
                   {
                       var rawData = db.Products.ToList();
@@ -251,9 +251,9 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
         {
             return _ToggleAlgorithmCommand ?? (_ToggleAlgorithmCommand = new RelayCommand(obj =>
             {
-                MessageBox.Show("Данные не прошли проверку целостности!","Ошибка");
+                //MessageBox.Show("Данные не прошли проверку целостности!","Ошибка");
                 UseAlgoritm = !UseAlgoritm; // Инвертируем значение UseAlgoritm
-                OnPropertyChanged("UseAlgoritm");
+                MessageBox.Show(UseAlgoritm.ToString());
             }));
         }
     }
