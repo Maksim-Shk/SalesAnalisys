@@ -20,7 +20,7 @@ public class SalesAnalysisContext : DbContext
     {
         if (!optionsBuilder.IsConfigured)
         {
-            optionsBuilder.UseNpgsql("Host=localhost;Port=5434;Database=SalesAnalisys2;Username=postgres;Password=password");
+            optionsBuilder.UseNpgsql("Host=localhost;Port=5434;Database=SalesAnalisys;Username=postgres;Password=password");
         }
     }
 
