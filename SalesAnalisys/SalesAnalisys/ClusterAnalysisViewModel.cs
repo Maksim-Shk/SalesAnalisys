@@ -18,6 +18,8 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
         PlotCollection = new PlotModel { Title = "Кластеризация товаров" };
         PlotCollection.Background = OxyColors.White;
 
+        UseAlgoritm = false;
+
         using (var db = new SalesAnalysisContext())
         {
             Products = new ObservableCollection<Product>(db.Products);
@@ -112,7 +114,6 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
             return _LoadClusterAnalysisWindowCommand ??
               (_LoadClusterAnalysisWindowCommand = new RelayCommand(obj =>
               {
-                  UseAlgoritm = true;
                   using (var db = new SalesAnalysisContext())
                   {
                       var rawData = db.Products.ToList();
@@ -153,7 +154,11 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
                       // Выполняем кластеризацию
                       var clusters = kmeans.Learn(observations);
 
-                      int[] labels = clusters.Decide(observations);
+                      int[] labels;
+                      if (UseAlgoritm is true) 
+                          labels = clusters.Decide(observations);
+                      else
+                          labels = db.Products.Select(p => p.Cluster).ToArray();
 
                       ClusteredProducts.Clear();
 
@@ -176,27 +181,27 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
                               rawData[i].Cluster = labels[i];
                               db.Products.Update(rawData[i]);
                           }
+                          db.SaveChanges();
                       }
                       else
                       {
-                          for (int i = 0; i < rawData.Count; i++)
+                          var products = db.Products.ToList();
+                          int j = 0;
+                          foreach (var product in products)
                           {
-                              var product = db.Products.First(x => x.Id == rawData[i].Id);
-
                               ClusteredProducts.Add(new ClusteredProduct
                               {
-                                  Id = rawData[i].Id,
-                                  Price = rawData[i].Price,
-                                  NormalizedPrice = normalizedData[i][0],
-                                  Total = rawData[i].Total,
-                                  NormalizedTotal = normalizedData[i][1],
+                                  Id = product.Id,
+                                  Price = product.Price,
+                                  NormalizedPrice = normalizedData[j][0],
+                                  Total = product.Total,
+                                  NormalizedTotal = normalizedData[j][1],
                                   AssignedCluster = product.Cluster,
-                                  Name = rawData[i].Name
+                                  Name = product.Name
                               });
+                              j++;
                           }
                       }
-
-                      db.SaveChanges();
 
                       var groupedByCluster = observations.Zip(labels, (observation, label) => new { observation, label })
                                .GroupBy(ol => ol.label)
