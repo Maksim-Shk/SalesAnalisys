@@ -47,7 +47,7 @@
 
         </Button>
 
-        <Button Content="Включить алгоритм" Command="{Binding ClusterAnalysisViewModel.ToggleAlgorithmCommand}" Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Right" />
+        <!--<Button Content="Включить алгоритм" Command="{Binding ClusterAnalysisViewModel.ToggleAlgorithmCommand}" Grid.Column="0" Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Right" />-->
 
 
         <DataGrid x:Name="vacancyGrid" 

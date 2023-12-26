@@ -118,7 +118,7 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
                   {
                       var rawData = db.Products.ToList();
 
-                      // 2. Нормализация данных
+                      //Нормализация данных
                       double maxPrice = rawData.Max(r => Convert.ToDouble(r.Price));
                       double maxTotal = rawData.Max(r => r.Total);
 
@@ -128,7 +128,6 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
                           r.Total / maxTotal
                       }).ToList();
 
-                      // 3. Заполнение массива observations
                       double[][] observations = normalizedData
                            .Select(r => r.Select(val => val).ToArray())
                            .ToArray();
@@ -137,25 +136,13 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
 
                       // Задаем количество кластеров
                       int clusterCount = 4;
-                      var kmeans = new KMeans(clusterCount)
-                      {
-                          //Distance = new SquareEuclidean(),
-                          //Tolerance = 0.05
-                      };
-                      //                          double[][] initialCentroids =
-                      //                          {
-                      //    new[] {0.0, 0.0},  // Левый нижний угол
-                      //    new[] {1.0, 0.0},  // Правый нижний угол
-                      //    new[] {0.0, 1.0},  // Левый верхний угол
-                      //    new[] {1.0, 1.0},  // Правый верхний угол
-                      //    new[] {0.5, 0.5}   // Центр
-                      //};
-                      //                          kmeans.Clusters.Centroids = initialCentroids;
+                      var kmeans = new KMeans(clusterCount) { };
+
                       // Выполняем кластеризацию
                       var clusters = kmeans.Learn(observations);
 
                       int[] labels;
-                      if (UseAlgoritm is true) 
+                      if (UseAlgoritm is true)
                           labels = clusters.Decide(observations);
                       else
                           labels = db.Products.Select(p => p.Cluster).ToArray();
@@ -176,7 +163,6 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
                                   AssignedCluster = labels[i],
                                   Name = rawData[i].Name
                               });
-
 
                               rawData[i].Cluster = labels[i];
                               db.Products.Update(rawData[i]);
@@ -203,11 +189,11 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
                           }
                       }
 
-                      var groupedByCluster = observations.Zip(labels, (observation, label) => new { observation, label })
+                      var groupedByCluster = observations
+                               .Zip(labels, (observation, label) => new { observation, label })
                                .GroupBy(ol => ol.label)
                                .ToList();
 
-                      //OnPropertyChanged(nameof(PlotModel));
                       var clusterColors = new[]
                       {
                           OxyColors.Red,
@@ -229,8 +215,9 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
 
                           foreach (var item in clusterGroup)
                           {
-                              double x = item.observation[0] * maxPrice; // Денормализация данных
-                              double y = item.observation[1] * maxTotal; // Денормализация данных
+                              // Денормализация данных
+                              double x = item.observation[0] * maxPrice;
+                              double y = item.observation[1] * maxTotal;
                               series.Points.Add(new ScatterPoint(x, y));
                           }
 
@@ -257,7 +244,7 @@ public class ClusterAnalysisViewModel : INotifyPropertyChanged
             return _ToggleAlgorithmCommand ?? (_ToggleAlgorithmCommand = new RelayCommand(obj =>
             {
                 //MessageBox.Show("Данные не прошли проверку целостности!","Ошибка");
-                UseAlgoritm = !UseAlgoritm; // Инвертируем значение UseAlgoritm
+                UseAlgoritm = !UseAlgoritm;
                 MessageBox.Show(UseAlgoritm.ToString());
             }));
         }
